@@ -42,6 +42,9 @@
 |---------|-----------|
 | **Multi-Modelo** | Suporte a múltiplos modelos de IA (GPT-4, Claude, DeepSeek, Mistral) |
 | **4 Modos de Operação** | Normal, Pensante, Engenheiro, Rápido |
+| **NeX Studio** | Geração de imagens com IA (Stable Diffusion XL) |
+| **Sessão Anônima** | Sistema automático de identificação de usuários |
+| **Redis Cache** | Memória temporária e cache de imagens |
 | **PWA** | Instalável como app nativo em iOS/Android/Desktop |
 | **Offline** | Funcionalidade offline após primeira visita |
 | **3D Particles** | Interface visual com Three.js e 45.000 partículas interativas |
@@ -196,6 +199,17 @@ MODEL_RAPIDO=mistralai/mistral-small
 
 # Security whitelist
 ALLOWED_MODELS=openai/gpt-4o-mini,openai/gpt-4.1,anthropic/claude-3.5-sonnet,deepseek/deepseek-coder,mistralai/mistral-small
+
+# ===========================================
+# UPSTASH REDIS (Memória & Cache)
+# ===========================================
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+
+# ===========================================
+# HUGGING FACE (Geração de Imagens)
+# ===========================================
+HF_API_KEY=hf_xxx
 ```
 
 ### Mapa de Modos
@@ -283,6 +297,76 @@ Content-Type: application/json
 | 400 | Parâmetros inválidos |
 | 401 | API Key não configurada |
 | 500 | Erro interno do servidor |
+
+---
+
+## 🎨 NeX Studio
+
+### Visão Geral
+
+NeX Studio é um módulo de geração de imagens com IA usando Stable Diffusion XL.
+
+### Características
+
+| Feature | Descrição |
+|---------|-----------|
+| **Modelo** | stabilityai/stable-diffusion-xl-base-1.0 |
+| **Limite** | 2 gerações por dia (reset 24h) |
+| **Cache** | Imagens em cache por 6 horas |
+| **Prompt Engine** | Otimização automática de prompts |
+
+### Rotas
+
+| Rota | Método | Descrição |
+|------|--------|-----------|
+| `/studio` | GET | Interface visual do Studio |
+| `/api/studio/improve` | POST | Otimiza prompt para SDXL |
+| `/api/studio/generate` | POST | Gera imagem |
+| `/api/studio/generate` | GET | Verifica uso restante |
+
+### POST /api/studio/improve
+
+```json
+// Request
+{
+  "idea": "um gato astronauta no espaço"
+}
+
+// Response
+{
+  "success": true,
+  "original": "um gato astronauta no espaço",
+  "optimized": "adorable astronauta cat floating in space...",
+  "negativePrompt": "blurry, low quality..."
+}
+```
+
+### POST /api/studio/generate
+
+```json
+// Request
+{
+  "prompt": "optimized prompt...",
+  "negativePrompt": "blurry, low quality..."
+}
+
+// Response
+{
+  "success": true,
+  "image": "data:image/png;base64,...",
+  "cached": false,
+  "remaining": 1
+}
+```
+
+### Identidade Visual
+
+O Studio possui tema próprio com tons de violeta e lilás:
+
+- **Cor primária**: `#8b5cf6` (Violet)
+- **Cor secundária**: `#a78bfa` (Lilac)
+- **Fundo**: Gradiente escuro com atmosfera artística
+- **Partículas**: 20.000 partículas violetas flutuantes
 
 ---
 
@@ -409,7 +493,8 @@ nex-ia/
 ├── README.md                 # Documentação
 │
 ├── public/
-│   ├── nex.html              # Frontend principal (HTML estático)
+│   ├── nex.html              # Frontend Chat (HTML estático)
+│   ├── studio.html           # Frontend Studio (HTML estático)
 │   ├── manifest.json         # PWA manifest
 │   ├── sw.js                 # Service Worker
 │   ├── icon-192.png          # Ícone PWA 192x192
@@ -421,14 +506,28 @@ nex-ia/
 │   └── logo.svg              # Logo original
 │
 └── src/
+    ├── lib/
+    │   ├── session.ts        # Sistema de sessão anônima
+    │   ├── redis.ts          # Cliente Upstash Redis
+    │   ├── huggingface.ts    # Cliente Hugging Face
+    │   └── promptEngine.ts   # Engine de otimização de prompts
+    │
     └── app/
         ├── page.tsx          # Redirect para /nex.html
         ├── layout.tsx        # Layout Next.js
         ├── globals.css       # Estilos globais
+        ├── middleware.ts     # Sessão automática
+        ├── studio/
+        │   └── page.tsx      # Redirect para /studio.html
         └── api/
             ├── route.ts      # API base
-            └── chat/
-                └── route.ts  # Endpoint /api/chat
+            ├── chat/
+            │   └── route.ts  # Endpoint /api/chat
+            └── studio/
+                ├── improve/
+                │   └── route.ts  # Otimização de prompts
+                └── generate/
+                    └── route.ts  # Geração de imagens
 ```
 
 ---
@@ -572,6 +671,15 @@ console.log('[NeX IA] Error:', error.message);
 ---
 
 ## 🔄 Changelog
+
+### v1.1.0 (2025-02-14)
+- NeX Studio: Geração de imagens com Stable Diffusion XL
+- Sistema de sessão anônima automática via middleware
+- Integração com Upstash Redis para cache e memória
+- Integração com Hugging Face API
+- Prompt Engine para otimização de prompts
+- Limite de 2 gerações diárias no Studio
+- Navegação entre Chat e Studio
 
 ### v1.0.0 (2025-02-14)
 - Release inicial

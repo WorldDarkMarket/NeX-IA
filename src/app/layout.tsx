@@ -14,24 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  title: "NeX IA - Inteligência Artificial | Powered by IAHub360°",
+  description: "NeX IA - Terminal de Inteligência Artificial multi-modelo. Interface avançada para interação com IA em múltiplos modos. Powered by IAHub360°.",
+  keywords: ["NeX IA", "Inteligência Artificial", "IA", "AI", "Chat IA", "IAHub360", "Chatbot", "Assistente Virtual"],
+  authors: [{ name: "IAHub360°" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/icon.svg",
   },
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "NeX IA - Inteligência Artificial",
+    description: "Terminal de Inteligência Artificial multi-modelo. Powered by IAHub360°.",
+    url: "https://nexia.iahub360.com",
+    siteName: "NeX IA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    title: "NeX IA - Inteligência Artificial",
+    description: "Terminal de Inteligência Artificial multi-modelo.",
   },
 };
 
@@ -40,8 +40,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Sessão anônima é criada automaticamente via middleware
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >

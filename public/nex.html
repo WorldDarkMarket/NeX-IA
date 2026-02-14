@@ -297,6 +297,14 @@
             box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
         }
 
+        .mode-btn.active[data-mode="pesquisa"],
+        .mode-btn.active:nth-child(2) {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: #8b5cf6;
+            color: #a78bfa;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+        }
+
         .input-area {
             display: flex;
             gap: 10px;
@@ -476,6 +484,49 @@
             opacity: 0.6;
         }
 
+        /* Navigation Toggle - Integrated in Header */
+        .nav-toggle {
+            display: flex;
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-toggle-item {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-toggle-item:hover {
+            color: white;
+            background: rgba(0, 210, 255, 0.1);
+        }
+
+        .nav-toggle-item.active {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+        }
+
+        .nav-toggle-item.studio {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-toggle-item.studio:hover {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--lilac, #c4b5fd);
+        }
+
         /* Footer */
         .footer-text {
             text-shadow: 0 0 10px var(--neon-blue), 0 0 20px rgba(0, 210, 255, 0.4);
@@ -528,9 +579,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="text-[10px] font-mono text-gray-500 border border-gray-800 px-2 py-1 rounded">
-                    SYS.NEX.3.1
-                </div>
+                <!-- Navigation Toggle -->
+                <nav class="nav-toggle">
+                    <span class="nav-toggle-item active">Chat</span>
+                    <a href="/studio" class="nav-toggle-item studio">Studio</a>
+                </nav>
             </div>
 
             <!-- Chat Area -->
@@ -550,16 +603,22 @@
             <div class="input-container">
                 <!-- Mode Buttons -->
                 <div class="mode-selector">
-                    <button class="mode-btn active" onclick="setMode('normal', this)">Normal</button>
-                    <button class="mode-btn" onclick="setMode('pensante', this)">Pensante</button>
-                    <button class="mode-btn" onclick="setMode('engenheiro', this)">Engenheiro</button>
-                    <button class="mode-btn" onclick="setMode('rapido', this)">Rápido</button>
+                    <button class="mode-btn active" onclick="setMode('normal', this)" title="Respostas padrão">Normal</button>
+                    <button class="mode-btn" onclick="setMode('pesquisa', this)" title="Pesquisa na internet">🔍 Pesquisa</button>
+                    <button class="mode-btn" onclick="setMode('pensante', this)" title="Análise profunda">Pensante</button>
+                    <button class="mode-btn" onclick="setMode('engenheiro', this)" title="Respostas técnicas">Engenheiro</button>
+                    <button class="mode-btn" onclick="setMode('rapido', this)" title="Respostas curtas">Rápido</button>
                 </div>
 
                 <!-- Input Field -->
                 <div class="input-area">
                     <input type="text" id="user-input" class="chat-input" placeholder="Insira dados para processamento..." autocomplete="off">
                     <button id="btn-send" class="btn-send">Enviar</button>
+                </div>
+                
+                <!-- Search Status -->
+                <div id="search-status" class="hidden px-4 py-2 text-[10px] text-violet-400 font-mono bg-violet-500/10 border-t border-violet-500/20">
+                    🔍 Pesquisando na web...
                 </div>
             </div>
         </div>
@@ -808,16 +867,37 @@
             currentMode = mode;
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
+            
+            // Update placeholder based on mode
+            const placeholders = {
+                normal: "Insira dados para processamento...",
+                pesquisa: "O que deseja pesquisar na web?",
+                pensante: "Apresente sua questão para análise...",
+                engenheiro: "Descreva o problema técnico...",
+                rapido: "Pergunta rápida?"
+            };
+            userInput.placeholder = placeholders[mode] || placeholders.normal;
         }
         window.setMode = setMode;
 
         // --- CHAT LOGIC ---
+        const searchStatus = document.getElementById('search-status');
+        
         async function handleSend() {
             const text = userInput.value.trim();
             if (!text) return;
             appendMsg(text, 'user');
             userInput.value = '';
+            
+            // Show search indicator for research mode
+            const isSearchMode = currentMode === 'pesquisa';
+            if (isSearchMode) {
+                searchStatus.classList.remove('hidden');
+                searchStatus.textContent = '🔍 Pesquisando na web...';
+            }
+            
             typingIndicator.style.display = 'block';
+            typingIndicator.textContent = isSearchMode ? '> PESQUISANDO NA WEB...' : '> PROCESSANDO DADOS...';
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             try {
@@ -834,6 +914,7 @@
                 
                 const data = await response.json();
                 typingIndicator.style.display = 'none';
+                searchStatus.classList.add('hidden');
                 
                 if (data.error) {
                     if(data.error.code === 401) {
@@ -843,22 +924,40 @@
                     }
                 } else {
                     const aiText = data.choices?.[0]?.message?.content || "Falha na computação.";
-                    appendMsg(aiText, 'bot');
+                    const wasSearch = data._searchPerformed || isSearchMode;
+                    appendMsg(aiText, 'bot', wasSearch);
                 }
             } catch (e) {
                 typingIndicator.style.display = 'none';
+                searchStatus.classList.add('hidden');
                 console.error(e);
                 appendMsg("ERRO DE CONEXÃO AO SERVIDOR.", 'bot');
             }
         }
 
-        function appendMsg(text, side) {
+        function appendMsg(text, side, isSearchResult = false) {
             const div = document.createElement('div');
             div.className = `message ${side}`;
+            
+            // Special styling for search results
+            if (side === 'bot' && isSearchResult) {
+                div.style.borderLeftColor = '#8b5cf6'; // Violet for search
+                div.style.background = 'rgba(139, 92, 246, 0.08)';
+            }
+            
             const label = document.createElement('div');
-            label.className = `font-bold text-[10px] mb-1 opacity-70 ${side === 'bot' ? 'text-blue-400' : 'text-gray-400'}`;
-            label.innerText = side === 'bot' ? `NEX [${currentMode.toUpperCase()}]` : 'OPERADOR';
+            label.className = `font-bold text-[10px] mb-1 opacity-70 ${side === 'bot' ? (isSearchResult ? 'text-violet-400' : 'text-blue-400') : 'text-gray-400'}`;
+            
+            // Label with icon for search
+            if (side === 'bot') {
+                label.innerText = isSearchResult 
+                    ? `🔍 NEX [PESQUISA WEB]` 
+                    : `NEX [${currentMode.toUpperCase()}]`;
+            } else {
+                label.innerText = 'OPERADOR';
+            }
             div.appendChild(label);
+            
             const contentDiv = document.createElement('div');
             contentDiv.style.whiteSpace = 'pre-wrap';
             contentDiv.innerText = text;

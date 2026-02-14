@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- Primary Meta Tags -->
+    <title>NeX Studio - Criação Visual com IA | NeX IA</title>
+    <meta name="title" content="NeX Studio - Criação Visual com IA">
+    <meta name="description" content="Crie imagens impressionantes com inteligência artificial. NeX Studio powered by IAHub360°.">
+    
+    <!-- Theme Color - Violet/Lilac -->
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    
+    <!-- Styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --violet-primary: #8b5cf6;
+            --violet-light: #a78bfa;
+            --violet-dark: #7c3aed;
+            --lilac: #c4b5fd;
+            --bg-dark: #0a0a0f;
+            --glass-bg: rgba(15, 10, 25, 0.6);
+            --border-color: rgba(139, 92, 246, 0.25);
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-dark);
+            font-family: 'Space Grotesk', sans-serif;
+            color: white;
+            overscroll-behavior: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Main Container - Full Screen */
+        #app-container {
+            position: fixed;
+            z-index: 10;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            padding-top: var(--safe-area-top);
+            padding-bottom: var(--safe-area-bottom);
+        }
+
+        .violet-text {
+            text-shadow: 0 0 10px var(--violet-primary), 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
+        /* ========================================
+           HEADER - Compact & Fixed
+        ======================================== */
+        .studio-header {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: linear-gradient(180deg, rgba(15, 10, 25, 0.95), rgba(15, 10, 25, 0.8));
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            z-index: 20;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-subtitle {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 9px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--lilac);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--violet-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--violet-primary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Navigation Toggle */
+        .nav-toggle {
+            display: flex;
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-toggle-item {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.45);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-toggle-item.chat:hover {
+            background: rgba(0, 210, 255, 0.12);
+            color: #00d2ff;
+        }
+
+        .nav-toggle-item.active {
+            background: var(--violet-primary);
+            color: white;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.35);
+        }
+
+        /* ========================================
+           IMAGE AREA - Scrollable
+        ======================================== */
+        .image-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        .image-area::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .image-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .image-area::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.25);
+            border-radius: 2px;
+        }
+
+        /* Image Container */
+        .image-container {
+            flex: 1;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            position: relative;
+        }
+
+        /* Placeholder */
+        .image-placeholder {
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.06), rgba(124, 58, 237, 0.02));
+            border: 2px dashed rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .image-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .image-placeholder span {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* Generated Image */
+        .generated-image {
+            max-width: 100%;
+            max-height: 50vh;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
+            object-fit: contain;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(139, 92, 246, 0.15);
+            border-top-color: var(--violet-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: var(--lilac);
+            font-size: 13px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        /* Prompt Preview */
+        .prompt-preview {
+            padding: 12px 16px;
+            margin: 0 12px 12px;
+            background: rgba(139, 92, 246, 0.06);
+            border-radius: 10px;
+            border-left: 3px solid var(--violet-primary);
+        }
+
+        .prompt-preview-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--lilac);
+            margin-bottom: 6px;
+            opacity: 0.8;
+        }
+
+        .prompt-preview-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.5;
+        }
+
+        /* ========================================
+           INPUT BAR - Fixed Bottom
+        ======================================== */
+        .input-bar {
+            flex-shrink: 0;
+            background: linear-gradient(0deg, rgba(10, 10, 18, 0.98), rgba(10, 10, 18, 0.95));
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+            backdrop-filter: blur(12px);
+        }
+
+        .input-bar-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .usage-badge {
+            background: rgba(139, 92, 246, 0.12);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--lilac);
+            white-space: nowrap;
+        }
+
+        .usage-badge.warning {
+            background: rgba(251, 191, 36, 0.12);
+            color: #fbbf24;
+        }
+
+        .usage-badge.empty {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
+        /* Textarea */
+        .idea-input {
+            width: 100%;
+            background: rgba(25, 18, 35, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 12px;
+            color: white;
+            outline: none;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            resize: none;
+            min-height: 44px;
+            max-height: 100px;
+            line-height: 1.4;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .idea-input:focus {
+            border-color: var(--violet-primary);
+            background: rgba(20, 14, 30, 0.95);
+        }
+
+        .idea-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--violet-primary), var(--violet-dark));
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            color: var(--lilac);
+            min-width: 90px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.15);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* ========================================
+           RESPONSIVE - Tablet & Desktop
+        ======================================== */
+        @media (min-width: 768px) {
+            .studio-header {
+                padding: 14px 20px;
+            }
+
+            .header-logo {
+                font-size: 1.5rem;
+            }
+
+            .header-subtitle {
+                font-size: 10px;
+            }
+
+            .nav-toggle-item {
+                padding: 7px 18px;
+                font-size: 12px;
+            }
+
+            .image-container {
+                padding: 24px;
+            }
+
+            .image-placeholder {
+                max-width: 380px;
+            }
+
+            .generated-image {
+                max-height: 55vh;
+            }
+
+            .input-bar {
+                padding: 16px 20px;
+            }
+
+            .idea-input {
+                font-size: 15px;
+                padding: 14px;
+            }
+
+            .btn {
+                padding: 14px 24px;
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #app-container {
+                max-width: 800px;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+            }
+
+            .image-placeholder {
+                max-width: 420px;
+            }
+
+            .generated-image {
+                max-height: 60vh;
+            }
+        }
+
+        /* ========================================
+           LANDSCAPE MOBILE
+        ======================================== */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .image-container {
+                min-height: 150px;
+                padding: 12px;
+            }
+
+            .image-placeholder {
+                max-width: 200px;
+                aspect-ratio: 1;
+            }
+
+            .image-placeholder svg {
+                width: 32px;
+                height: 32px;
+            }
+
+            .generated-image {
+                max-height: 45vh;
+            }
+
+            .input-bar {
+                padding: 8px 12px;
+            }
+
+            .idea-input {
+                min-height: 36px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .action-buttons {
+                margin-top: 6px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="app-container">
+        <!-- Header -->
+        <header class="studio-header">
+            <div class="header-brand">
+                <div class="header-logo violet-text">NeX Studio</div>
+                <div>
+                    <div class="header-subtitle">Criação Visual</div>
+                    <div class="header-status">
+                        <span class="status-dot"></span>
+                        READY
+                    </div>
+                </div>
+            </div>
+            <nav class="nav-toggle">
+                <a href="/nex.html" class="nav-toggle-item chat">Chat</a>
+                <span class="nav-toggle-item active">Studio</span>
+            </nav>
+        </header>
+
+        <!-- Image Area (Scrollable) -->
+        <main class="image-area" id="image-area">
+            <div class="image-container" id="image-container">
+                <!-- Placeholder -->
+                <div class="image-placeholder" id="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+                    </svg>
+                    <span>Descreva sua ideia<br>para gerar uma imagem</span>
+                </div>
+
+                <!-- Loading Overlay -->
+                <div class="loading-overlay hidden" id="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text" id="loading-text">Processando sua ideia...</div>
+                </div>
+
+                <!-- Generated Image -->
+                <img class="generated-image hidden" id="generated-image" alt="Imagem gerada por IA">
+            </div>
+
+            <!-- Prompt Preview -->
+            <div class="prompt-preview hidden" id="prompt-preview">
+                <div class="prompt-preview-label">Prompt Otimizado</div>
+                <div class="prompt-preview-text" id="prompt-text"></div>
+            </div>
+        </main>
+
+        <!-- Input Bar (Fixed Bottom) -->
+        <footer class="input-bar">
+            <div class="input-bar-top">
+                <div class="usage-badge" id="usage-badge">2 gerações restantes</div>
+            </div>
+
+            <textarea
+                id="idea-input"
+                class="idea-input"
+                placeholder="Descreva a imagem que deseja criar..."
+                rows="1"
+            ></textarea>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="btn-cancel" disabled>Cancelar</button>
+                <button class="btn btn-primary" id="btn-generate" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Criar Imagem
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // ========================================
+        // STUDIO APP - Mobile Optimized
+        // ========================================
+
+        const elements = {
+            ideaInput: document.getElementById('idea-input'),
+            btnGenerate: document.getElementById('btn-generate'),
+            btnCancel: document.getElementById('btn-cancel'),
+            placeholder: document.getElementById('placeholder'),
+            loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loading-text'),
+            generatedImage: document.getElementById('generated-image'),
+            promptPreview: document.getElementById('prompt-preview'),
+            promptText: document.getElementById('prompt-text'),
+            usageBadge: document.getElementById('usage-badge'),
+            imageArea: document.getElementById('image-area')
+        };
+
+        let currentPrompt = null;
+        let negativePrompt = null;
+        let remaining = 2;
+        let isGenerating = false;
+
+        // ========================================
+        // INIT
+        // ========================================
+
+        async function init() {
+            initThreeJS();
+            await checkUsage();
+            setupAutoResize();
+            setupKeyboardHandling();
+        }
+
+        // ========================================
+        // AUTO RESIZE TEXTAREA
+        // ========================================
+
+        function setupAutoResize() {
+            const input = elements.ideaInput;
+            
+            input.addEventListener('input', () => {
+                // Reset height
+                input.style.height = 'auto';
+                // Set new height based on content
+                const newHeight = Math.min(input.scrollHeight, 100);
+                input.style.height = newHeight + 'px';
+                
+                // Enable/disable button
+                const hasContent = input.value.trim().length > 3;
+                elements.btnGenerate.disabled = !hasContent || remaining <= 0 || isGenerating;
+                
+                // Reset prompt preview when input changes
+                if (currentPrompt && input.value.trim() !== currentPrompt) {
+                    currentPrompt = null;
+                    elements.promptPreview.classList.add('hidden');
+                }
+            });
+        }
+
+        // ========================================
+        // KEYBOARD HANDLING (Mobile)
+        // ========================================
+
+        function setupKeyboardHandling() {
+            // Scroll to keep input visible when keyboard opens
+            elements.ideaInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                    elements.ideaInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            });
+        }
+
+        // ========================================
+        // USAGE CHECK
+        // ========================================
+
+        async function checkUsage() {
+            try {
+                const res = await fetch('/api/studio/generate');
+                const data = await res.json();
+                remaining = data.remaining ?? 2;
+                updateUsageBadge();
+            } catch (e) {
+                console.error('Erro ao verificar uso:', e);
+            }
+        }
+
+        function updateUsageBadge() {
+            elements.usageBadge.textContent = remaining > 0
+                ? `${remaining} geraç${remaining === 1 ? 'ão' : 'ões'} restante${remaining === 1 ? '' : 's'}`
+                : 'Limite diário atingido';
+            
+            elements.usageBadge.classList.remove('warning', 'empty');
+            if (remaining === 1) {
+                elements.usageBadge.classList.add('warning');
+            } else if (remaining <= 0) {
+                elements.usageBadge.classList.add('empty');
+            }
+            
+            elements.btnGenerate.disabled = remaining <= 0 || elements.ideaInput.value.trim().length <= 3;
+        }
+
+        // ========================================
+        // LOADING STATE
+        // ========================================
+
+        function setLoading(isLoading, text = '') {
+            isGenerating = isLoading;
+            
+            elements.loading.classList.toggle('hidden', !isLoading);
+            if (text) elements.loadingText.textContent = text;
+            
+            elements.btnGenerate.disabled = isLoading || remaining <= 0;
+            elements.btnCancel.disabled = !isLoading;
+            elements.ideaInput.disabled = isLoading;
+            
+            if (isLoading) {
+                elements.btnGenerate.innerHTML = `
+                    <div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div>
+                    Gerando...
+                `;
+            } else {
+                elements.btnGenerate.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Criar Imagem
+                `;
+            }
+        }
+
+        // ========================================
+        // GENERATE FLOW
+        // ========================================
+
+        elements.btnGenerate.addEventListener('click', async () => {
+            const idea = elements.ideaInput.value.trim();
+            if (!idea || isGenerating) return;
+
+            setLoading(true, 'Processando sua ideia...');
+
+            try {
+                // Step 1: Improve prompt
+                if (!currentPrompt) {
+                    const improveRes = await fetch('/api/studio/improve', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idea })
+                    });
+
+                    const improveData = await improveRes.json();
+
+                    if (!improveRes.ok) {
+                        throw new Error(improveData.error || 'Erro ao processar ideia');
+                    }
+
+                    currentPrompt = improveData.optimized;
+                    negativePrompt = improveData.negativePrompt;
+
+                    // Show preview
+                    elements.promptText.textContent = currentPrompt;
+                    elements.promptPreview.classList.remove('hidden');
+                }
+
+                setLoading(true, 'Gerando imagem...');
+
+                // Step 2: Generate image
+                const genRes = await fetch('/api/studio/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: currentPrompt,
+                        negativePrompt
+                    })
+                });
+
+                const genData = await genRes.json();
+
+                if (!genRes.ok) {
+                    if (genData.loading) {
+                        setLoading(true, genData.error);
+                        await new Promise(r => setTimeout(r, 20000));
+                        return elements.btnGenerate.click();
+                    }
+                    throw new Error(genData.message || genData.error || 'Erro ao gerar imagem');
+                }
+
+                // Success
+                elements.generatedImage.src = genData.image;
+                elements.generatedImage.classList.remove('hidden');
+                elements.placeholder.classList.add('hidden');
+                remaining = genData.remaining;
+                updateUsageBadge();
+                
+                // Scroll to show image
+                elements.imageArea.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        elements.btnCancel.addEventListener('click', () => {
+            isGenerating = false;
+            setLoading(false);
+        });
+
+        // ========================================
+        // THREE.JS BACKGROUND (Optimized)
+        // ========================================
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 8;
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            container.appendChild(renderer.domElement);
+
+            // Reduced particles for mobile performance
+            const isMobile = window.innerWidth < 768;
+            const particleCount = isMobile ? 6000 : 15000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                positions[i3] = (Math.random() - 0.5) * 20;
+                positions[i3 + 1] = (Math.random() - 0.5) * 20;
+                positions[i3 + 2] = (Math.random() - 0.5) * 10;
+
+                // Violet color variations
+                colors[i3] = 0.55 + Math.random() * 0.2;
+                colors[i3 + 1] = 0.36 + Math.random() * 0.15;
+                colors[i3 + 2] = 0.97 + Math.random() * 0.03;
+            }
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const mat = new THREE.PointsMaterial({
+                size: isMobile ? 0.025 : 0.02,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.5,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(geo, mat);
+            scene.add(particles);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                particles.rotation.y += 0.0002;
+                particles.rotation.x += 0.0001;
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
