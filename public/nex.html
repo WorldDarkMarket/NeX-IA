@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- Primary Meta Tags -->
+    <title>NeX IA - Inteligência Artificial | Powered by IAHub360°</title>
+    <meta name="title" content="NeX IA - Inteligência Artificial | Powered by IAHub360°">
+    <meta name="description" content="NeX IA - Terminal de Inteligência Artificial multi-modelo. Interface avançada para interação com IA em modos Normal, Pensante, Engenheiro e Rápido. Powered by IAHub360°.">
+    <meta name="keywords" content="NeX IA, Inteligência Artificial, IA, AI, Chat IA, IAHub360, Chatbot, Assistente Virtual, AI Terminal, Multi-model AI">
+    <meta name="author" content="IAHub360°">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Portuguese">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#00d2ff">
+    <meta name="msapplication-TileColor" content="#050505">
+    <meta name="msapplication-navbutton-color" content="#00d2ff">
+    
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NeX IA">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <!-- Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-192.png">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nexia.iahub360.com/">
+    <meta property="og:title" content="NeX IA - Inteligência Artificial | Powered by IAHub360°">
+    <meta property="og:description" content="Terminal de Inteligência Artificial multi-modelo. Interface avançada para interação com IA em múltiplos modos.">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:locale" content="pt_PT">
+    <meta property="og:site_name" content="NeX IA">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://nexia.iahub360.com/">
+    <meta property="twitter:title" content="NeX IA - Inteligência Artificial | Powered by IAHub360°">
+    <meta property="twitter:description" content="Terminal de Inteligência Artificial multi-modelo. Interface avançada para interação com IA.">
+    <meta property="twitter:image" content="/og-image.png">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "NeX IA",
+        "operatingSystem": "Web Browser",
+        "applicationCategory": "UtilitiesApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        },
+        "description": "Terminal de Inteligência Artificial multi-modelo para interação avançada com IA.",
+        "author": {
+            "@type": "Organization",
+            "name": "IAHub360°"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "128"
+        }
+    }
+    </script>
+    
+    <!-- Styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-purple: #bc13fe;
+            --bg-dark: #050505;
+            --glass-bg: rgba(5, 5, 5, 0.45); 
+            --border-color: rgba(0, 210, 255, 0.3);
+            --active-mode-bg: rgba(0, 210, 255, 0.15);
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Space Grotesk', sans-serif;
+            color: white;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #app-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            padding-top: calc(20px + var(--safe-area-top));
+            padding-bottom: calc(20px + var(--safe-area-bottom));
+            opacity: 0; 
+            pointer-events: none; 
+            transition: opacity 0.5s;
+        }
+
+        #app-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px rgba(0, 210, 255, 0.4), 0 0 40px rgba(0, 210, 255, 0.2);
+        }
+
+        /* Chat Interface */
+        .chat-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            height: 85vh;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            opacity: 0; 
+        }
+
+        /* Animação de Construção Nano-Robótica Lenta */
+        .nano-build-effect {
+            animation: nanoConstruct 3.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        @keyframes nanoConstruct {
+            0% {
+                opacity: 0;
+                transform: scale(0.9) perspective(1000px) rotateX(5deg);
+                background-image: radial-gradient(circle, var(--neon-blue) 0.5px, transparent 0.5px);
+                background-size: 4px 4px; 
+                background-color: rgba(0,0,0,0.95);
+                border-color: transparent;
+                clip-path: inset(50% 20% 50% 20%);
+            }
+            20% {
+                opacity: 0.2;
+                clip-path: inset(30% 10% 30% 10%);
+                background-size: 8px 8px;
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.01) perspective(1000px) rotateX(-2deg);
+                background-image: radial-gradient(circle, var(--neon-blue) 1px, transparent 1px);
+                background-size: 15px 15px;
+                clip-path: inset(10% 0 10% 0);
+                border-color: rgba(0, 210, 255, 0.1);
+            }
+            80% {
+                opacity: 0.9;
+                background-image: radial-gradient(circle, rgba(0, 210, 255, 0.2) 1px, transparent 1px);
+                clip-path: inset(0 0 0 0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) perspective(1000px) rotateX(0deg);
+                background-image: none;
+                background-color: var(--glass-bg);
+                border-color: var(--border-color);
+            }
+        }
+
+        .chat-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 210, 255, 0.05);
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(0, 210, 255, 0.3); border-radius: 3px; }
+
+        .message {
+            max-width: 85%;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            line-height: 1.6;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(0, 20, 30, 0.6);
+            border-left: 3px solid var(--neon-blue);
+            color: #e0e0e0;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: rgba(255, 255, 255, 0.1);
+            border-right: 3px solid #ccc;
+            color: #fff;
+        }
+
+        .input-container {
+            background: rgba(0, 0, 0, 0.6);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            padding: 10px 1.2rem;
+            overflow-x: auto;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--neon-blue);
+            color: white;
+        }
+
+        .mode-btn.active {
+            background: var(--active-mode-bg);
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 1.2rem;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333;
+            padding: 1rem;
+            color: white;
+            outline: none;
+            border-radius: 6px;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: border-color 0.3s;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+
+        .chat-input:focus {
+            border-color: var(--neon-blue);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .btn-send {
+            background: var(--neon-blue);
+            color: #000;
+            border: none;
+            padding: 0 2rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-send:hover {
+            box-shadow: 0 0 15px var(--neon-blue);
+            transform: scale(1.02);
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #00ff41;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 5px #00ff41;
+        }
+
+        /* Intro Overlay Styles */
+        #intro-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        #intro-btn {
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            background: transparent;
+            padding: 15px 40px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        #intro-btn:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 40px var(--neon-blue);
+        }
+
+        #intro-status {
+            margin-top: 15px;
+            font-size: 10px;
+            color: #444;
+            font-family: monospace;
+            height: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* PWA Install Banner */
+        #pwa-install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
+            border-top: 1px solid var(--border-color);
+            padding: 16px 20px;
+            padding-bottom: calc(16px + var(--safe-area-bottom));
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        #pwa-install-banner.show {
+            display: flex;
+        }
+
+        .pwa-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pwa-banner-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #00d2ff, #0088dd);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #000;
+        }
+
+        .pwa-banner-text h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .pwa-banner-text p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .pwa-banner-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pwa-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .pwa-btn-install {
+            background: var(--neon-blue);
+            color: #000;
+        }
+
+        .pwa-btn-dismiss {
+            background: transparent;
+            color: white;
+            opacity: 0.6;
+        }
+
+        /* Footer */
+        .footer-text {
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px rgba(0, 210, 255, 0.4);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .chat-wrapper {
+                height: 90vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .chat-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .input-area {
+                padding: 0.75rem;
+            }
+            
+            #intro-btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Overlay -->
+    <div id="intro-overlay">
+        <div class="text-5xl md:text-6xl font-bold tracking-tighter neon-text mb-2">NeX IA</div>
+        <div class="text-sm text-gray-400 tracking-widest uppercase mb-8">Inteligência Artificial</div>
+        <button id="intro-btn">INICIALIZAR</button>
+        <div id="intro-status">AGUARDANDO INPUT MANUAL...</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="app-container">
+        <div class="chat-wrapper" id="chat-wrapper">
+            <!-- Header -->
+            <div class="chat-header">
+                <div class="flex items-center">
+                    <div class="mr-4 text-2xl font-bold tracking-tighter neon-text">NeX IA</div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 tracking-widest uppercase">Núcleo Cognitivo</span>
+                        <div class="flex items-center text-[10px] text-green-500 font-mono mt-1">
+                            <span class="status-dot"></span> CONNECTED
+                        </div>
+                    </div>
+                </div>
+                <div class="text-[10px] font-mono text-gray-500 border border-gray-800 px-2 py-1 rounded">
+                    SYS.NEX.3.1
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div id="chat-messages" class="chat-messages">
+                <div class="message bot">
+                    <div class="font-bold text-[10px] text-blue-400 mb-1 opacity-70">SISTEMA</div>
+                    NeX IA Inicializada. Selecione o protocolo de interação e insira seu comando.
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typing" class="px-6 py-2 text-[10px] text-blue-400 font-mono hidden animate-pulse bg-black/20">
+                > PROCESSANDO DADOS...
+            </div>
+
+            <!-- Input Container with Modes -->
+            <div class="input-container">
+                <!-- Mode Buttons -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" onclick="setMode('normal', this)">Normal</button>
+                    <button class="mode-btn" onclick="setMode('pensante', this)">Pensante</button>
+                    <button class="mode-btn" onclick="setMode('engenheiro', this)">Engenheiro</button>
+                    <button class="mode-btn" onclick="setMode('rapido', this)">Rápido</button>
+                </div>
+
+                <!-- Input Field -->
+                <div class="input-area">
+                    <input type="text" id="user-input" class="chat-input" placeholder="Insira dados para processamento..." autocomplete="off">
+                    <button id="btn-send" class="btn-send">Enviar</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-[10px] text-gray-500 font-mono opacity-60 footer-text">
+            NeX IA // Powered by IAHub360°
+        </div>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner">
+        <div class="pwa-banner-content">
+            <div class="pwa-banner-icon">NX</div>
+            <div class="pwa-banner-text">
+                <h3>Instalar NeX IA</h3>
+                <p>Adicione ao ecrã principal para acesso rápido</p>
+            </div>
+        </div>
+        <div class="pwa-banner-actions">
+            <button class="pwa-btn pwa-btn-dismiss" id="pwa-dismiss">Agora não</button>
+            <button class="pwa-btn pwa-btn-install" id="pwa-install">Instalar</button>
+        </div>
+    </div>
+
+    <script>
+        // --- PWA INSTALLATION ---
+        let deferredPrompt;
+        const pwaBanner = document.getElementById('pwa-install-banner');
+        const pwaInstallBtn = document.getElementById('pwa-install');
+        const pwaDismissBtn = document.getElementById('pwa-dismiss');
+
+        // Check if already installed
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                            window.navigator.standalone || 
+                            document.referrer.includes('android-app://');
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('[PWA] Service Worker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('[PWA] Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Listen for install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show banner after a delay (don't show immediately)
+            setTimeout(() => {
+                if (!isStandalone && localStorage.getItem('pwa-dismissed') !== 'true') {
+                    pwaBanner.classList.add('show');
+                }
+            }, 5000);
+        });
+
+        // Install button click
+        pwaInstallBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('[PWA] User choice:', outcome);
+                deferredPrompt = null;
+                pwaBanner.classList.remove('show');
+            }
+        });
+
+        // Dismiss button click
+        pwaDismissBtn.addEventListener('click', () => {
+            pwaBanner.classList.remove('show');
+            localStorage.setItem('pwa-dismissed', 'true');
+        });
+
+        // App installed event
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] App installed');
+            pwaBanner.classList.remove('show');
+            deferredPrompt = null;
+        });
+
+        // --- IA CONFIGURATION ---
+        let currentMode = 'normal';
+
+        // --- DOM ELEMENTS ---
+        const userInput = document.getElementById('user-input');
+        const btnSend = document.getElementById('btn-send');
+        const chatMessages = document.getElementById('chat-messages');
+        const typingIndicator = document.getElementById('typing');
+        const introOverlay = document.getElementById('intro-overlay');
+        const introBtn = document.getElementById('intro-btn');
+        const introStatus = document.getElementById('intro-status');
+        const appContainer = document.getElementById('app-container');
+        const chatWrapper = document.getElementById('chat-wrapper');
+
+        // --- SOUND ENGINE (TECHNO EDITION) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBootSequence() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const now = audioCtx.currentTime;
+            const gatherTime = 5.0; 
+            const stabilizeTime = 1.5;
+            const totalIntroTime = gatherTime + stabilizeTime;
+
+            const oscPad = audioCtx.createOscillator();
+            const gainPad = audioCtx.createGain();
+            oscPad.type = 'sine';
+            oscPad.frequency.setValueAtTime(100, now);
+            oscPad.frequency.exponentialRampToValueAtTime(600, now + gatherTime); 
+            
+            gainPad.gain.setValueAtTime(0, now);
+            gainPad.gain.linearRampToValueAtTime(0.2, now + 1);
+            gainPad.gain.linearRampToValueAtTime(0.3, now + gatherTime);
+            gainPad.gain.linearRampToValueAtTime(0.1, now + totalIntroTime); 
+            gainPad.gain.linearRampToValueAtTime(0, now + totalIntroTime + 0.1); 
+            
+            const oscLFO = audioCtx.createOscillator();
+            oscLFO.frequency.value = 4;
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 10;
+            oscLFO.connect(lfoGain);
+            lfoGain.connect(oscPad.frequency);
+            oscLFO.start(now);
+            oscLFO.stop(now + totalIntroTime);
+
+            oscPad.connect(gainPad);
+            gainPad.connect(audioCtx.destination);
+            oscPad.start(now);
+            oscPad.stop(now + totalIntroTime + 0.5);
+
+            const oscStream = audioCtx.createOscillator();
+            const gainStream = audioCtx.createGain();
+            oscStream.type = 'triangle';
+            oscStream.frequency.setValueAtTime(400, now);
+            oscStream.frequency.linearRampToValueAtTime(1200, now + gatherTime);
+            
+            gainStream.gain.setValueAtTime(0, now);
+            gainStream.gain.linearRampToValueAtTime(0.05, now + 2);
+            gainStream.gain.linearRampToValueAtTime(0, now + totalIntroTime);
+            
+            const filterStream = audioCtx.createBiquadFilter();
+            filterStream.type = "bandpass";
+            filterStream.Q.value = 5;
+            filterStream.frequency.value = 1000;
+
+            oscStream.connect(filterStream);
+            filterStream.connect(gainStream);
+            gainStream.connect(audioCtx.destination);
+            oscStream.start(now);
+            oscStream.stop(now + totalIntroTime);
+
+            const kickStart = now + gatherTime;
+            const kickOsc = audioCtx.createOscillator();
+            const kickGain = audioCtx.createGain();
+            kickOsc.frequency.setValueAtTime(80, kickStart);
+            kickOsc.frequency.exponentialRampToValueAtTime(40, kickStart + 0.2);
+            
+            kickGain.gain.setValueAtTime(0, kickStart);
+            kickGain.gain.linearRampToValueAtTime(0.4, kickStart + 0.05);
+            kickGain.gain.exponentialRampToValueAtTime(0.01, kickStart + 0.5);
+            
+            kickOsc.connect(kickGain);
+            kickGain.connect(audioCtx.destination);
+            kickOsc.start(kickStart);
+            kickOsc.stop(kickStart + 0.6);
+            
+            setTimeout(() => {
+                playSuccessSound();
+            }, totalIntroTime * 1000);
+        }
+
+        function playSuccessSound() {
+            const now = audioCtx.currentTime;
+            const frequencies = [261.63, 329.63, 392.00, 493.88, 587.33]; 
+            
+            frequencies.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+                
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.05, now + 0.1 + (index * 0.02));
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+                
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = "lowpass";
+                filter.frequency.setValueAtTime(1000, now);
+                filter.frequency.linearRampToValueAtTime(500, now + 2);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 3.5);
+            });
+
+            const arpOsc = audioCtx.createOscillator();
+            const arpGain = audioCtx.createGain();
+            arpOsc.type = 'sine';
+            arpOsc.frequency.setValueAtTime(1046.50, now);
+            arpOsc.frequency.setValueAtTime(1318.51, now + 0.1);
+            
+            arpGain.gain.setValueAtTime(0.1, now);
+            arpGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+            arpOsc.connect(arpGain);
+            arpGain.connect(audioCtx.destination);
+            arpOsc.start(now);
+            arpOsc.stop(now + 0.3);
+        }
+
+        // --- INTRO SEQUENCE ---
+        introBtn.addEventListener('click', () => {
+            introBtn.style.display = 'none';
+            introStatus.innerText = "A REUNIR NÚCLEO...";
+            introStatus.classList.add('animate-pulse');
+            introStatus.style.color = "#00d2ff";
+
+            playBootSequence();
+            triggerParticleGathering();
+
+            setTimeout(() => {
+                introOverlay.style.opacity = '0';
+            }, 5500);
+
+            setTimeout(() => {
+                introOverlay.style.display = 'none';
+            }, 6500);
+
+            setTimeout(() => {
+                appContainer.classList.add('active');
+                chatWrapper.classList.add('nano-build-effect');
+            }, 6500);
+        });
+
+        // --- MODE SWITCHING ---
+        function setMode(mode, btnElement) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+        window.setMode = setMode;
+
+        // --- CHAT LOGIC ---
+        async function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            appendMsg(text, 'user');
+            userInput.value = '';
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        mode: currentMode
+                    })
+                });
+                
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+                
+                if (data.error) {
+                    if(data.error.code === 401) {
+                         appendMsg("ERRO DE CONFIGURAÇÃO: Chave OpenRouter não configurada no servidor. Adicione OPENROUTER_API_KEY ao .env.local", 'bot');
+                    } else {
+                         appendMsg(`ERRO DO NÚCLEO: ${data.error.message}`, 'bot');
+                    }
+                } else {
+                    const aiText = data.choices?.[0]?.message?.content || "Falha na computação.";
+                    appendMsg(aiText, 'bot');
+                }
+            } catch (e) {
+                typingIndicator.style.display = 'none';
+                console.error(e);
+                appendMsg("ERRO DE CONEXÃO AO SERVIDOR.", 'bot');
+            }
+        }
+
+        function appendMsg(text, side) {
+            const div = document.createElement('div');
+            div.className = `message ${side}`;
+            const label = document.createElement('div');
+            label.className = `font-bold text-[10px] mb-1 opacity-70 ${side === 'bot' ? 'text-blue-400' : 'text-gray-400'}`;
+            label.innerText = side === 'bot' ? `NEX [${currentMode.toUpperCase()}]` : 'OPERADOR';
+            div.appendChild(label);
+            const contentDiv = document.createElement('div');
+            contentDiv.style.whiteSpace = 'pre-wrap';
+            contentDiv.innerText = text;
+            div.appendChild(contentDiv);
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        btnSend.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', e => e.key === 'Enter' && handleSend());
+
+        // --- 3D PARTICLE ENGINE ---
+        let scene, camera, renderer, points;
+        const particleCount = window.innerWidth < 768 ? 20000 : 45000;
+        
+        const targetPositions = new Float32Array(particleCount * 3); 
+        const startPositions = new Float32Array(particleCount * 3);
+        const currentPositions = new Float32Array(particleCount * 3);
+
+        const originals = new Float32Array(particleCount * 3); 
+        const velocities = new Float32Array(particleCount * 3);
+        let pointer = new THREE.Vector2(-100, -100);
+        let isTouching = false;
+        
+        let introState = 'idle';
+        let introStartTime = 0;
+        
+        const GATHER_DURATION = 5000;
+        const STABILIZE_DURATION = 1500;
+
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = window.innerWidth < 768 ? 9 : 7; 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            const geo = new THREE.BufferGeometry();
+            const radius = 3.8;
+            const scatterRange = 80; 
+
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                
+                const phi = Math.acos(-1 + (2 * i) / particleCount);
+                const theta = Math.sqrt(particleCount * Math.PI) * phi;
+                
+                const tx = radius * Math.cos(theta) * Math.sin(phi);
+                const ty = radius * Math.sin(theta) * Math.sin(phi);
+                const tz = radius * Math.cos(phi);
+
+                targetPositions[i3] = tx;
+                targetPositions[i3 + 1] = ty;
+                targetPositions[i3 + 2] = tz;
+                
+                originals[i3] = tx;
+                originals[i3 + 1] = ty;
+                originals[i3 + 2] = tz;
+
+                startPositions[i3] = (Math.random() - 0.5) * scatterRange * 3;
+                startPositions[i3 + 1] = (Math.random() - 0.5) * scatterRange * 3;
+                startPositions[i3 + 2] = (Math.random() - 0.5) * scatterRange * 2; 
+
+                currentPositions[i3] = startPositions[i3];
+                currentPositions[i3+1] = startPositions[i3+1];
+                currentPositions[i3+2] = startPositions[i3+2];
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
+            const mat = new THREE.PointsMaterial({
+                size: window.innerWidth < 768 ? 0.015 : 0.012,
+                color: 0x00d2ff,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            points = new THREE.Points(geo, mat);
+            scene.add(points);
+
+            const handleMove = (x, y) => {
+                if(introState !== 'finished') return; 
+                pointer.x = (x / window.innerWidth) * 2 - 1;
+                pointer.y = -(y / window.innerHeight) * 2 + 1;
+                isTouching = true;
+            };
+
+            window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+            window.addEventListener('touchstart', e => handleMove(e.touches[0].clientX, e.touches[0].clientY));
+            window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY));
+            window.addEventListener('touchend', () => isTouching = false);
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animate();
+        }
+
+        function triggerParticleGathering() {
+            introState = 'gathering';
+            introStartTime = Date.now();
+        }
+
+        function easeInOutQuart(x) {
+            return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const now = Date.now();
+            const posAttr = points.geometry.attributes.position;
+
+            if (introState === 'gathering') {
+                const elapsed = now - introStartTime;
+                let progress = elapsed / GATHER_DURATION;
+
+                if (progress >= 1) {
+                    progress = 1;
+                    introState = 'stabilizing';
+                    introStartTime = now;
+                    for(let i=0; i<velocities.length; i++) velocities[i] = 0;
+                }
+
+                const eased = easeInOutQuart(progress);
+
+                for(let i=0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    posAttr.array[i3] = startPositions[i3] + (targetPositions[i3] - startPositions[i3]) * eased;
+                    posAttr.array[i3+1] = startPositions[i3+1] + (targetPositions[i3+1] - startPositions[i3+1]) * eased;
+                    posAttr.array[i3+2] = startPositions[i3+2] + (targetPositions[i3+2] - startPositions[i3+2]) * eased;
+                }
+                
+                points.rotation.y += 0.005 * (1 - progress);
+                points.rotation.z += 0.005 * (1 - progress);
+
+            } else if (introState === 'stabilizing') {
+                const elapsed = now - introStartTime;
+                points.rotation.y += 0.003; 
+                points.rotation.x += 0.001;
+                
+                const time = now * 0.002;
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    
+                    const ox = targetPositions[i3];
+                    const oy = targetPositions[i3 + 1];
+                    const oz = targetPositions[i3 + 2];
+                    
+                    const dist = Math.sqrt(ox*ox + oy*oy + oz*oz);
+                    const nx = ox / dist;
+                    const ny = oy / dist;
+                    const nz = oz / dist;
+
+                    const waveAmp = 0.15;
+                    const waveFreq = 2.0;
+                    const waveOffset = Math.sin(time + oy * waveFreq) * waveAmp;
+
+                    if (Math.random() < 0.0001) {
+                        velocities[i3] += nx * 0.8;
+                        velocities[i3+1] += ny * 0.8;
+                        velocities[i3+2] += nz * 0.8;
+                    }
+
+                    const targetX = ox + nx * waveOffset;
+                    const targetY = oy + ny * waveOffset;
+                    const targetZ = oz + nz * waveOffset;
+
+                    const x = posAttr.array[i3];
+                    const y = posAttr.array[i3 + 1];
+                    const z = posAttr.array[i3 + 2];
+
+                    velocities[i3] += (targetX - x) * 0.05;
+                    velocities[i3+1] += (targetY - y) * 0.05;
+                    velocities[i3+2] += (targetZ - z) * 0.05;
+
+                    velocities[i3] *= 0.85;
+                    velocities[i3+1] *= 0.85;
+                    velocities[i3+2] *= 0.85;
+
+                    posAttr.array[i3] += velocities[i3];
+                    posAttr.array[i3+1] += velocities[i3+1];
+                    posAttr.array[i3+2] += velocities[i3+2];
+                }
+
+                if (elapsed > STABILIZE_DURATION) {
+                    introState = 'finished';
+                    for(let i=0; i<particleCount*3; i++) {
+                        originals[i] = targetPositions[i]; 
+                        posAttr.array[i] = targetPositions[i];
+                        velocities[i] = 0;
+                    }
+                }
+
+            } else if (introState === 'finished') {
+                points.rotation.y += 0.0015;
+                points.rotation.x += 0.0005;
+
+                const vector = new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera);
+                const dir = vector.sub(camera.position).normalize();
+                const distance = -camera.position.z / dir.z;
+                const touch3D = camera.position.clone().add(dir.multiplyScalar(distance));
+                const invRot = new THREE.Matrix4().makeRotationFromEuler(points.rotation).invert();
+                const localTouch = touch3D.clone().applyMatrix4(invRot);
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    let x = posAttr.array[i3];
+                    let y = posAttr.array[i3 + 1];
+                    let z = posAttr.array[i3 + 2];
+
+                    const ox = targetPositions[i3];
+                    const oy = targetPositions[i3 + 1];
+                    const oz = targetPositions[i3 + 2];
+
+                    const dx = x - localTouch.x;
+                    const dy = y - localTouch.y;
+                    const dz = z - localTouch.z;
+                    const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    const limit = isTouching ? 1.5 : 0.0;
+                    
+                    if (d < limit) {
+                        const repulsion = (1.0 - (d / limit)) * 0.2;
+                        velocities[i3] += dx * repulsion;
+                        velocities[i3 + 1] += dy * repulsion;
+                        velocities[i3 + 2] += dz * repulsion;
+                    }
+
+                    const springForce = 0.05;
+                    velocities[i3] += (ox - x) * springForce;
+                    velocities[i3 + 1] += (oy - y) * springForce;
+                    velocities[i3 + 2] += (oz - z) * springForce;
+                    velocities[i3] *= 0.85;
+
+                    posAttr.array[i3] += velocities[i3];
+                    posAttr.array[i3 + 1] += velocities[i3 + 1];
+                    posAttr.array[i3 + 2] += velocities[i3 + 2];
+                }
+            } else {
+                const time = Date.now() * 0.0005;
+                points.rotation.y = time * 0.1;
+            }
+
+            posAttr.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+
+        window.onload = initThree;
+    </script>
+</body>
+</html>

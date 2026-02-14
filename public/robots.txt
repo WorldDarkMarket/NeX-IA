@@ -1,0 +1,9 @@
+# NeX IA - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://nexia.iahub360.com/sitemap.xml
+
+# Crawl-delay (optional, for polite crawlers)
+Crawl-delay: 1
