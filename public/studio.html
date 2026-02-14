@@ -589,7 +589,7 @@
         <!-- Input Bar (Fixed Bottom) -->
         <footer class="input-bar">
             <div class="input-bar-top">
-                <div class="usage-badge" id="usage-badge">2 gerações restantes</div>
+                <div class="usage-badge" id="usage-badge">Verificando limite...</div>
             </div>
 
             <textarea
@@ -632,7 +632,8 @@
 
         let currentPrompt = null;
         let negativePrompt = null;
-        let remaining = 2;
+        let remaining = 5; // Default, atualizado pela API
+        let dailyLimit = 5; // Default, atualizado pela API
         let isGenerating = false;
 
         // ========================================
@@ -693,17 +694,23 @@
             try {
                 const res = await fetch('/api/studio/generate');
                 const data = await res.json();
-                remaining = data.remaining ?? 2;
+                remaining = data.remaining ?? 5;
+                dailyLimit = data.limit ?? 5;
                 updateUsageBadge();
             } catch (e) {
                 console.error('Erro ao verificar uso:', e);
+                // Manter valores padrão
             }
         }
 
         function updateUsageBadge() {
-            elements.usageBadge.textContent = remaining > 0
-                ? `${remaining} geraç${remaining === 1 ? 'ão' : 'ões'} restante${remaining === 1 ? '' : 's'}`
-                : 'Limite diário atingido';
+            if (remaining > 0) {
+                const word = remaining === 1 ? 'ão' : 'ões';
+                const suffix = remaining === 1 ? '' : 's';
+                elements.usageBadge.textContent = `${remaining} geraç${word} restante${suffix} de ${dailyLimit}`;
+            } else {
+                elements.usageBadge.textContent = 'Limite diário atingido';
+            }
             
             elements.usageBadge.classList.remove('warning', 'empty');
             if (remaining === 1) {

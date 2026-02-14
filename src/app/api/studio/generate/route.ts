@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { incrementStudioUsage, getStudioUsage, getCachedImage, cacheImage } from "@/lib/redis";
+import { incrementStudioUsage, getStudioUsage, getCachedImage, cacheImage, MAX_GENERATIONS_PER_DAY } from "@/lib/redis";
 import { generateImage, hashPrompt } from "@/lib/huggingface";
 import { validatePrompt } from "@/lib/promptEngine";
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Limite diário atingido",
-          message: "Você já usou suas 2 gerações de hoje. Tente novamente amanhã.",
+          message: `Você já usou suas ${MAX_GENERATIONS_PER_DAY} gerações de hoje. Tente novamente amanhã.`,
           remaining: 0,
         },
         { status: 429 }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       success: true,
       image: result.image,
       cached: false,
-      remaining: Math.max(0, 2 - newUsage.count),
+      remaining: Math.max(0, MAX_GENERATIONS_PER_DAY - newUsage.count),
     });
   } catch (error) {
     console.error("[API/generate] Erro:", error);
@@ -106,7 +106,7 @@ export async function GET() {
       sessionId: session.id,
       used: usage.count,
       remaining: usage.remaining,
-      limit: 2,
+      limit: MAX_GENERATIONS_PER_DAY,
     });
   } catch (error) {
     console.error("[API/generate] Erro ao verificar uso:", error);

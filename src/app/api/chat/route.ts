@@ -9,7 +9,7 @@ const PROMPTS: Record<string, string> = {
   pesquisa: "Você é um assistente de pesquisa web. Sua função é analisar resultados de busca e apresentar informações de forma clara e organizada. SEMPRE cite as fontes usando [1], [2], etc. quando usar informações dos resultados. Seja preciso e objetivo. Use Português de Portugal."
 };
 
-// Mapa de modos para variáveis de ambiente
+// Mapa de modos para variáveis de ambiente (modelo principal)
 const MODE_TO_ENV: Record<string, string> = {
   normal: "MODEL_NORMAL",
   pensante: "MODEL_PENSANTE",
@@ -18,12 +18,31 @@ const MODE_TO_ENV: Record<string, string> = {
   pesquisa: "MODEL_PESQUISA"
 };
 
-// Modelos padrão caso ENV não esteja definida
+// Mapa de modos para modelos alternativos (fallback)
+const MODE_TO_ALT_ENV: Record<string, string> = {
+  normal: "MODEL_NORMAL_ALT",
+  pensante: "MODEL_PENSANTE_ALT",
+  engenheiro: "MODEL_ENGENHEIRO_ALT",
+  rapido: "MODEL_RAPIDO_ALT",
+  pesquisa: "MODEL_PESQUISA_ALT"
+};
+
+// Modelos padrão (fallback) - sincronizados com .env
+// Estes valores são usados APENAS se a variável ENV não estiver definida
 const DEFAULT_MODELS: Record<string, string> = {
   normal: "openai/gpt-4o-mini",
   pensante: "openai/gpt-4.1",
-  engenheiro: "deepseek/deepseek-coder",
-  rapido: "mistralai/mistral-small",
+  engenheiro: "z-ai/glm-4.5-air:free",
+  rapido: "z-ai/glm-4.5-air:free",
+  pesquisa: "openai/gpt-4o-mini"
+};
+
+// Modelos alternativos padrão (fallback)
+const DEFAULT_ALT_MODELS: Record<string, string> = {
+  normal: "openai/gpt-4o-mini",
+  pensante: "anthropic/claude-3.5-sonnet",
+  engenheiro: "openai/gpt-4o-mini",
+  rapido: "openai/gpt-4o-mini",
   pesquisa: "openai/gpt-4o-mini"
 };
 
@@ -114,6 +133,78 @@ async function performSearch(query: string): Promise<{ answer?: string; context:
   }
 }
 
+// ========================================
+// MODEL SELECTION WITH FALLBACK
+// ========================================
+
+interface ModelConfig {
+  primary: string;
+  alternate: string | null;
+}
+
+function getModelsForMode(mode: string): ModelConfig {
+  const modeLower = mode.toLowerCase();
+  const envKey = MODE_TO_ENV[modeLower];
+  const altEnvKey = MODE_TO_ALT_ENV[modeLower];
+
+  // Modelo principal
+  const primary = envKey
+    ? process.env[envKey] || DEFAULT_MODELS[modeLower] || process.env.DEFAULT_MODEL || "openai/gpt-4o-mini"
+    : process.env.DEFAULT_MODEL || "openai/gpt-4o-mini";
+
+  // Modelo alternativo (opcional)
+  const alternate = altEnvKey
+    ? process.env[altEnvKey] || DEFAULT_ALT_MODELS[modeLower] || null
+    : null;
+
+  return { primary, alternate };
+}
+
+// ========================================
+// OPENROUTER API CALL WITH FALLBACK
+// ========================================
+
+interface ChatCompletionParams {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  siteUrl: string;
+}
+
+async function callOpenRouter(
+  params: ChatCompletionParams,
+  apiKey: string
+): Promise<{ success: boolean; data?: unknown; error?: string; status?: number }> {
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": params.siteUrl,
+        "X-Title": "NeX IA Terminal",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: params.model,
+        messages: params.messages
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Erro específico do modelo
+      const errorMsg = data.error?.message || `HTTP ${response.status}`;
+      console.error(`[OpenRouter] Erro com modelo ${params.model}:`, errorMsg);
+      return { success: false, error: errorMsg, status: response.status, data };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("[OpenRouter] Erro de rede:", error);
+    return { success: false, error: "Erro de conexão" };
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: ChatRequest = await request.json();
@@ -133,10 +224,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determinar o modelo a usar
-    let selectedModel: string;
+    // Obter API key
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: { message: "API Key não configurada no servidor", code: 401 } },
+        { status: 401 }
+      );
+    }
+
+    // Determinar modelos (principal e alternativo)
+    let primaryModel: string;
+    let alternateModel: string | null = null;
 
     if (overrideModel) {
+      // Modelo especificado diretamente
       const allowedModels = process.env.ALLOWED_MODELS?.split(",") || [];
       if (allowedModels.length > 0 && !allowedModels.includes(overrideModel)) {
         return NextResponse.json(
@@ -144,16 +246,12 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      selectedModel = overrideModel;
+      primaryModel = overrideModel;
     } else {
-      const modeLower = mode.toLowerCase();
-      const envKey = MODE_TO_ENV[modeLower];
-
-      if (envKey) {
-        selectedModel = process.env[envKey] || DEFAULT_MODELS[modeLower] || process.env.DEFAULT_MODEL || "openai/gpt-4o-mini";
-      } else {
-        selectedModel = process.env.DEFAULT_MODEL || "openai/gpt-4o-mini";
-      }
+      // Usar configuração por modo
+      const modelConfig = getModelsForMode(mode);
+      primaryModel = modelConfig.primary;
+      alternateModel = modelConfig.alternate;
     }
 
     // Obter prompt do modo
@@ -172,7 +270,6 @@ export async function POST(request: NextRequest) {
       searchContext = searchResult.context;
       
       if (searchResult.answer) {
-        // Se temos resposta do Tavily, podemos usá-la diretamente
         systemPrompt += `\n\nVocê tem acesso a resultados de pesquisa em tempo real. Use estas informações para responder. Cite as fontes quando relevante.\n\n${searchContext}`;
       }
     }
@@ -181,47 +278,54 @@ export async function POST(request: NextRequest) {
       userMessage = `Contexto de pesquisa:\n${searchContext}\n\nPergunta do usuário: ${message}`;
     }
 
-    // Obter API key
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: { message: "API Key não configurada no servidor", code: 401 } },
-        { status: 401 }
-      );
-    }
-
     // Construir URL do site para header HTTP-Referer
     const siteUrl = request.headers.get("host")
       ? `${request.headers.get("x-forwarded-proto") || "https"}://${request.headers.get("host")}`
       : "http://localhost:3000";
 
-    // Chamar OpenRouter API
-    const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": siteUrl,
-        "X-Title": "NeX IA Terminal",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ]
-      })
-    });
+    // Preparar mensagens
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage }
+    ];
 
-    const data = await openRouterResponse.json();
+    // Tentar com modelo principal
+    console.log(`[Chat] Usando modelo: ${primaryModel}`);
+    let result = await callOpenRouter({ model: primaryModel, messages, siteUrl }, apiKey);
+
+    // Se falhou e temos modelo alternativo, tentar com ele
+    if (!result.success && alternateModel) {
+      console.log(`[Chat] Falha com ${primaryModel}, tentando fallback: ${alternateModel}`);
+      result = await callOpenRouter({ model: alternateModel, messages, siteUrl }, apiKey);
+      
+      if (result.success) {
+        // Adicionar metadata de fallback
+        (result.data as Record<string, unknown>)._fallbackUsed = true;
+        (result.data as Record<string, unknown>)._originalModel = primaryModel;
+        (result.data as Record<string, unknown>)._fallbackModel = alternateModel;
+      }
+    }
+
+    // Se ainda falhou, retornar erro
+    if (!result.success) {
+      return NextResponse.json(
+        { 
+          error: { 
+            message: result.error || "Erro ao processar requisição",
+            code: result.status || 500
+          } 
+        },
+        { status: result.status || 500 }
+      );
+    }
 
     // Adicionar metadados de pesquisa se houve busca
+    const data = result.data as Record<string, unknown>;
     if (needsSearch && searchContext) {
       data._searchPerformed = true;
     }
 
-    // Retornar resposta RAW do OpenRouter
+    // Retornar resposta
     return NextResponse.json(data);
 
   } catch (error) {

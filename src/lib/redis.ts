@@ -167,7 +167,11 @@ export async function getChatHistory(
 // STUDIO USAGE FUNCTIONS
 // ========================================
 
-const MAX_GENERATIONS_PER_DAY = 2;
+// Limite diário de gerações - configurável via ENV
+export const MAX_GENERATIONS_PER_DAY = parseInt(
+  process.env.STUDIO_DAILY_LIMIT || '5',
+  10
+);
 
 export async function incrementStudioUsage(
   sessionId: string
